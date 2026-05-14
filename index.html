@@ -12,6 +12,7 @@
             --orange: #e67e22;
             --red: #e74c3c;
             --blue: #3498db;
+            --grey: #95a5a6;
             --dark: #2c3e50;
         }
 
@@ -43,7 +44,7 @@
         }
 
         button {
-            padding: 25px;
+            padding: 22px;
             font-size: 1.4rem;
             font-weight: bold;
             border: none;
@@ -62,6 +63,26 @@
         .btn-4 { background-color: var(--orange); }
         .btn-5 { background-color: var(--red); }
         
+        .control-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .secondary-btn {
+            background-color: #eee;
+            color: #333;
+            font-size: 1.1rem;
+            padding: 12px 20px;
+            flex: 1;
+        }
+
+        .back-btn {
+            background-color: var(--grey);
+            color: white;
+        }
+
         #progress-bar {
             width: 100%;
             height: 12px;
@@ -113,7 +134,11 @@
             <button class="btn-4" onclick="handleAnswer(4)" id="opt4"></button>
             <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
-        <button style="background:#eee; color:#333; margin-top:25px; font-size:1.1rem; padding: 12px 20px;" onclick="speakCurrent()">🔊 重讀問題</button>
+
+        <div class="control-btns">
+            <button id="back-btn" class="secondary-btn back-btn hidden" onclick="goBack()">上一步</button>
+            <button class="secondary-btn" onclick="speakCurrent()">🔊 重讀問題</button>
+        </div>
     </div>
 
     <div id="result-screen" class="hidden">
@@ -167,6 +192,13 @@
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
+        // Show back button only after the first question
+        if (currentStep > 0) {
+            document.getElementById('back-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('back-btn').classList.add('hidden');
+        }
+
         let labels = [];
         if (currentStep >= 8) {
             labels = ["沒有", "輕微", "中度", "嚴重", "極度"];
@@ -190,14 +222,12 @@
     }
 
     function handleAnswer(points) {
-        // Find the text of the selected choice
         const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
         
-        // Disable buttons temporarily to prevent double-clicking
-        const buttons = document.querySelectorAll('.btn-grid button');
+        // Disable all buttons to prevent multiple clicks during speech
+        const buttons = document.querySelectorAll('button');
         buttons.forEach(b => b.style.pointerEvents = 'none');
 
-        // Speak confirmation
         speak(`你選擇了：${selectedText}`, () => {
             scores.push(points);
             currentStep++;
@@ -209,6 +239,16 @@
                 showResults();
             }
         });
+    }
+
+    function goBack() {
+        if (currentStep > 0) {
+            scores.pop(); // Remove the last score
+            currentStep--; // Move back one step
+            speak("返回上一題", () => {
+                loadQuestion();
+            });
+        }
     }
 
     function showResults() {
