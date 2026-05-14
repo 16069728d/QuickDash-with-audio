@@ -12,7 +12,8 @@
             --orange: #e67e22;
             --red: #e74c3c;
             --blue: #3498db;
-            --grey: #95a5a6;
+            --grey: #bdc3c7;
+            --dark-grey: #7f8c8d;
             --dark: #2c3e50;
         }
 
@@ -51,7 +52,7 @@
             border-radius: 15px;
             cursor: pointer;
             color: white;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
         }
 
         button:active { transform: scale(0.98); }
@@ -63,25 +64,31 @@
         .btn-4 { background-color: var(--orange); }
         .btn-5 { background-color: var(--red); }
         
+        /* Control Buttons Container */
         .control-btns {
             display: flex;
-            gap: 10px;
-            margin-top: 25px;
+            gap: 12px;
+            margin-top: 30px;
             justify-content: center;
         }
 
-        .secondary-btn {
-            background-color: #eee;
-            color: #333;
+        .nav-btn {
+            background-color: #ecf0f1;
+            color: var(--dark);
             font-size: 1.1rem;
-            padding: 12px 20px;
+            padding: 15px 20px;
             flex: 1;
+            border: 2px solid #ddd;
         }
 
         .back-btn {
-            background-color: var(--grey);
+            background-color: var(--dark-grey);
             color: white;
+            border: none;
         }
+
+        /* Logic to hide button but keep space */
+        .invisible { visibility: hidden; pointer-events: none; }
 
         #progress-bar {
             width: 100%;
@@ -136,8 +143,8 @@
         </div>
 
         <div class="control-btns">
-            <button id="back-btn" class="secondary-btn back-btn hidden" onclick="goBack()">上一步</button>
-            <button class="secondary-btn" onclick="speakCurrent()">🔊 重讀問題</button>
+            <button id="back-btn" class="nav-btn back-btn invisible" onclick="goBack()">⬅ 上一步</button>
+            <button class="nav-btn" onclick="speakCurrent()">🔊 重讀問題</button>
         </div>
     </div>
 
@@ -170,12 +177,11 @@
     let currentStep = 0;
     let scores = [];
 
-    function speak(text, callback) {
+    function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
         msg.rate = 0.85;
-        if (callback) msg.onend = callback;
         window.speechSynthesis.speak(msg);
     }
 
@@ -192,11 +198,12 @@
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
-        // Show back button only after the first question
+        // Return button visibility: only show from question 2 onwards
+        const backBtn = document.getElementById('back-btn');
         if (currentStep > 0) {
-            document.getElementById('back-btn').classList.remove('hidden');
+            backBtn.classList.remove('invisible');
         } else {
-            document.getElementById('back-btn').classList.add('hidden');
+            backBtn.classList.add('invisible');
         }
 
         let labels = [];
@@ -224,11 +231,14 @@
     function handleAnswer(points) {
         const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
         
-        // Disable all buttons to prevent multiple clicks during speech
+        // Prevent clicking other buttons while audio plays
         const buttons = document.querySelectorAll('button');
         buttons.forEach(b => b.style.pointerEvents = 'none');
 
-        speak(`你選擇了：${selectedText}`, () => {
+        speak(`你選擇了：${selectedText}`);
+
+        // Safety timeout to ensure the UI updates even if speech is delayed
+        setTimeout(() => {
             scores.push(points);
             currentStep++;
             buttons.forEach(b => b.style.pointerEvents = 'auto');
@@ -238,16 +248,15 @@
             } else {
                 showResults();
             }
-        });
+        }, 1200); // Wait 1.2 seconds for the user to hear the confirmation
     }
 
     function goBack() {
         if (currentStep > 0) {
-            scores.pop(); // Remove the last score
-            currentStep--; // Move back one step
-            speak("返回上一題", () => {
-                loadQuestion();
-            });
+            scores.pop(); 
+            currentStep--; 
+            speak("返回上一題");
+            loadQuestion();
         }
     }
 
