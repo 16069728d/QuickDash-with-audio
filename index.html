@@ -12,8 +12,7 @@
             --orange: #e67e22;
             --red: #e74c3c;
             --blue: #3498db;
-            --grey: #bdc3c7;
-            --dark-grey: #7f8c8d;
+            --grey: #7f8c8d;
             --dark: #2c3e50;
         }
 
@@ -52,7 +51,7 @@
             border-radius: 15px;
             cursor: pointer;
             color: white;
-            transition: all 0.2s;
+            transition: transform 0.1s;
         }
 
         button:active { transform: scale(0.98); }
@@ -64,31 +63,26 @@
         .btn-4 { background-color: var(--orange); }
         .btn-5 { background-color: var(--red); }
         
-        /* Control Buttons Container */
-        .control-btns {
+        .nav-container {
             display: flex;
-            gap: 12px;
+            gap: 15px;
             margin-top: 30px;
             justify-content: center;
         }
 
         .nav-btn {
-            background-color: #ecf0f1;
-            color: var(--dark);
+            background-color: #eee;
+            color: #333;
             font-size: 1.1rem;
-            padding: 15px 20px;
+            padding: 15px;
             flex: 1;
-            border: 2px solid #ddd;
+            border-radius: 12px;
         }
 
         .back-btn {
-            background-color: var(--dark-grey);
+            background-color: var(--grey);
             color: white;
-            border: none;
         }
-
-        /* Logic to hide button but keep space */
-        .invisible { visibility: hidden; pointer-events: none; }
 
         #progress-bar {
             width: 100%;
@@ -114,9 +108,9 @@
             background-color: #f8fbff;
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         p { font-size: 1.5rem; line-height: 1.4; margin: 20px 0; font-weight: bold; color: var(--dark); }
-        .instruction-text { font-size: 1.2rem; color: #d35400; font-weight: bold; margin-top: 15px; }
+        .instruction { font-size: 1.2rem; color: #d35400; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -142,8 +136,8 @@
             <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
 
-        <div class="control-btns">
-            <button id="back-btn" class="nav-btn back-btn invisible" onclick="goBack()">⬅ 上一步</button>
+        <div class="nav-container">
+            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 上一步</button>
             <button class="nav-btn" onclick="speakCurrent()">🔊 重讀問題</button>
         </div>
     </div>
@@ -154,7 +148,7 @@
             <span style="font-size: 1.2rem;">您的分數是：</span>
             <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
         </div>
-        <p class="instruction-text">請記下分數，並交給您的物理治療師。</p>
+        <p class="instruction">請記下分數，並交給您的物理治療師。</p>
         <button class="btn-start" onclick="location.reload()" style="margin-top: 20px;">重新開始</button>
     </div>
 </div>
@@ -177,11 +171,12 @@
     let currentStep = 0;
     let scores = [];
 
-    function speak(text) {
+    function speak(text, callback) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
         msg.rate = 0.85;
+        if (callback) msg.onend = callback;
         window.speechSynthesis.speak(msg);
     }
 
@@ -198,12 +193,12 @@
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
-        // Return button visibility: only show from question 2 onwards
+        // Return button visibility logic
         const backBtn = document.getElementById('back-btn');
         if (currentStep > 0) {
-            backBtn.classList.remove('invisible');
+            backBtn.classList.remove('hidden');
         } else {
-            backBtn.classList.add('invisible');
+            backBtn.classList.add('hidden');
         }
 
         let labels = [];
@@ -230,15 +225,10 @@
 
     function handleAnswer(points) {
         const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
-        
-        // Prevent clicking other buttons while audio plays
         const buttons = document.querySelectorAll('button');
         buttons.forEach(b => b.style.pointerEvents = 'none');
 
-        speak(`你選擇了：${selectedText}`);
-
-        // Safety timeout to ensure the UI updates even if speech is delayed
-        setTimeout(() => {
+        speak(`你選擇了：${selectedText}`, () => {
             scores.push(points);
             currentStep++;
             buttons.forEach(b => b.style.pointerEvents = 'auto');
@@ -248,15 +238,16 @@
             } else {
                 showResults();
             }
-        }, 1200); // Wait 1.2 seconds for the user to hear the confirmation
+        });
     }
 
     function goBack() {
         if (currentStep > 0) {
             scores.pop(); 
             currentStep--; 
-            speak("返回上一題");
-            loadQuestion();
+            speak("返回上一題", () => {
+                loadQuestion();
+            });
         }
     }
 
