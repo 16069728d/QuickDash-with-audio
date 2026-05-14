@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDASH 廣東話評估</title>
+    <title>QuickDASH 語音評估</title>
     <style>
         :root {
             --green: #26ad60;
@@ -53,7 +53,7 @@
             transition: opacity 0.2s;
         }
 
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        button:active { transform: scale(0.98); }
 
         .btn-start { background-color: var(--blue); width: 100%; font-size: 1.8rem; }
         .btn-1 { background-color: var(--green); }
@@ -88,7 +88,7 @@
 
         .hidden { display: none; }
         p { font-size: 1.5rem; line-height: 1.4; margin: 20px 0; font-weight: bold; color: var(--dark); }
-        .instruction { font-size: 1.1rem; color: #e67e22; font-weight: bold; margin-top: 10px; }
+        .instruction-text { font-size: 1.2rem; color: #d35400; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -97,33 +97,33 @@
     <div id="progress-bar" class="hidden"><div id="progress-fill"></div></div>
     
     <div id="start-screen">
-        <h1 style="color: var(--dark);">上肢功能問卷 (QuickDASH)</h1>
-        <p>請點擊下方藍色按鈕開始</p>
-        <button class="btn-start" onclick="startAssessment()">開始 (START)</button>
+        <h1 style="color: var(--dark);">QuickDASH 語音評估</h1>
+        <p>請按下方藍色按鈕開始</p>
+        <button class="btn-start" onclick="startAssessment()">開始</button>
     </div>
 
     <div id="question-screen" class="hidden">
         <h2 id="question-number" style="color: var(--blue);">第 1 題</h2>
         <p id="question-text"></p>
         
-        <div class="btn-grid" id="options-grid">
+        <div class="btn-grid">
             <button class="btn-1" onclick="handleAnswer(1)" id="opt1"></button>
             <button class="btn-2" onclick="handleAnswer(2)" id="opt2"></button>
             <button class="btn-3" onclick="handleAnswer(3)" id="opt3"></button>
             <button class="btn-4" onclick="handleAnswer(4)" id="opt4"></button>
             <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
-        <button id="replay-btn" style="background:#eee; color:#333; margin-top:20px; font-size:1rem; padding: 10px 20px;" onclick="speakCurrent()">🔊 重讀問題 (Replay)</button>
+        <button style="background:#eee; color:#333; margin-top:25px; font-size:1.1rem; padding: 12px 20px;" onclick="speakCurrent()">🔊 重讀問題</button>
     </div>
 
     <div id="result-screen" class="hidden">
         <h1 style="color: var(--green);">評估完成</h1>
         <div class="result-box">
-            <span style="font-size: 1.2rem; color: var(--dark);">您的 QuickDASH 分數是：</span>
+            <span style="font-size: 1.2rem;">您的分數是：</span>
             <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
         </div>
-        <p class="instruction">請記下此分數，並交給您的物理治療師。</p>
-        <button class="btn-start" onclick="location.reload()" style="margin-top: 10px;">重新開始</button>
+        <p class="instruction-text">請記下分數，並交給您的物理治療師。</p>
+        <button class="btn-start" onclick="location.reload()" style="margin-top: 20px;">重新開始</button>
     </div>
 </div>
 
@@ -135,11 +135,11 @@
         "洗背部",
         "用刀切食物",
         "進行一些需要上肢用力或受震盪的康樂活動",
-        "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？",
-        "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？",
+        "過去一星期，你的上肢問題在多大程度上干擾了你正常的社交活動？",
+        "過去一星期，你的工作或其他日常活動是否受到限制？",
         "上肢痛楚（包括肩膀、手臂或手部）",
         "上肢有麻痺或刺痛的感覺",
-        "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？"
+        "過去一星期，你是否因為痛楚而感到入睡困難？"
     ];
 
     let currentStep = 0;
@@ -150,9 +150,7 @@
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
         msg.rate = 0.85;
-        if (callback) {
-            msg.onend = callback;
-        }
+        if (callback) msg.onend = callback;
         window.speechSynthesis.speak(msg);
     }
 
@@ -165,7 +163,7 @@
 
     function loadQuestion() {
         const q = questions[currentStep];
-        document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題 (共 11 題)`;
+        document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題`;
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
@@ -179,59 +177,48 @@
         }
 
         for(let i=1; i<=5; i++) {
-            const btn = document.getElementById(`opt${i}`);
-            btn.innerText = `${i}. ${labels[i-1]}`;
-            btn.disabled = false;
+            document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
         }
-        document.getElementById('replay-btn').disabled = false;
-
         speakCurrent();
     }
 
     function speakCurrent() {
         const q = questions[currentStep];
-        const b1 = document.getElementById('opt1').innerText.split('. ')[1];
-        const b2 = document.getElementById('opt2').innerText.split('. ')[1];
-        const b3 = document.getElementById('opt3').innerText.split('. ')[1];
-        const b4 = document.getElementById('opt4').innerText.split('. ')[1];
-        const b5 = document.getElementById('opt5').innerText.split('. ')[1];
-        
-        let speechText = `第${currentStep + 1}題。${q}。請選擇：一，${b1}。二，${b2}。三，${b3}。四，${b4}。五，${b5}。`;
-        speak(speechText);
+        const opts = [1,2,3,4,5].map(i => document.getElementById(`opt${i}`).innerText.split('. ')[1]);
+        let speech = `第${currentStep + 1}題。${q}。請選擇：一，${opts[0]}。二，${opts[1]}。三，${opts[2]}。四，${opts[3]}。五，${opts[4]}。`;
+        speak(speech);
     }
 
     function handleAnswer(points) {
-        // Disable buttons to prevent double-tapping during confirmation
-        for(let i=1; i<=5; i++) { document.getElementById(`opt${i}`).disabled = true; }
-        document.getElementById('replay-btn').disabled = true;
-
+        // Find the text of the selected choice
         const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
-        scores.push(points);
         
-        // Confirmation Audio
-        speak(`你選擇咗：${selectedText}。`, () => {
-            // Wait a brief moment after speaking before loading next
-            setTimeout(() => {
-                currentStep++;
-                if (currentStep < questions.length) {
-                    loadQuestion();
-                } else {
-                    finishAssessment();
-                }
-            }, 500);
+        // Disable buttons temporarily to prevent double-clicking
+        const buttons = document.querySelectorAll('.btn-grid button');
+        buttons.forEach(b => b.style.pointerEvents = 'none');
+
+        // Speak confirmation
+        speak(`你選擇了：${selectedText}`, () => {
+            scores.push(points);
+            currentStep++;
+            buttons.forEach(b => b.style.pointerEvents = 'auto');
+            
+            if (currentStep < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
         });
     }
 
-    function finishAssessment() {
+    function showResults() {
         const sum = scores.reduce((a, b) => a + b, 0);
-        const finalCalculatedScore = ((sum / 11) - 1) * 25;
-        
+        const finalScore = ((sum / 11) - 1) * 25;
         document.getElementById('question-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
-        document.getElementById('final-score').innerText = finalCalculatedScore.toFixed(1);
+        document.getElementById('final-score').innerText = finalScore.toFixed(1);
         
-        let finishSpeech = `評估完成。你的分數是 ${finalCalculatedScore.toFixed(1)} 分。請記下這個分數，並交給你的物理治療師。`;
-        speak(finishSpeech);
+        speak(`評估完成。你的分數是 ${finalScore.toFixed(1)} 分。請記下這個分數，並交給你的物理治療師。`);
     }
 </script>
 </body>
