@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDASH 廣東話語音評估</title>
+    <title>QuickDASH 廣東話評估</title>
     <style>
         :root {
             --green: #26ad60;
@@ -12,6 +12,7 @@
             --orange: #e67e22;
             --red: #e74c3c;
             --blue: #3498db;
+            --dark: #2c3e50;
         }
 
         body {
@@ -34,9 +35,6 @@
             text-align: center;
         }
 
-        h1 { color: #2c3e50; font-size: 1.6rem; }
-        p { font-size: 1.4rem; color: #34495e; font-weight: 600; line-height: 1.4; margin: 20px 0; }
-
         .btn-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -46,32 +44,21 @@
 
         button {
             padding: 25px;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: bold;
             border: none;
             border-radius: 15px;
             cursor: pointer;
             color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        button:active { transform: scale(0.97); }
 
         .btn-start { background-color: var(--blue); width: 100%; font-size: 1.8rem; }
         .btn-1 { background-color: var(--green); }
         .btn-2 { background-color: var(--light-green); }
-        .btn-3 { background-color: var(--yellow); color: black; }
+        .btn-3 { background-color: var(--yellow); color: var(--dark); }
         .btn-4 { background-color: var(--orange); }
         .btn-5 { background-color: var(--red); }
         
-        .replay-btn {
-            background: #eee;
-            color: #333;
-            font-size: 1rem;
-            padding: 10px 20px;
-            margin-top: 20px;
-        }
-
         #progress-bar {
             width: 100%;
             height: 12px;
@@ -88,7 +75,17 @@
             transition: width 0.3s;
         }
 
+        .result-box {
+            border: 4px solid var(--blue);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f8fbff;
+        }
+
         .hidden { display: none; }
+        p { font-size: 1.5rem; line-height: 1.4; margin: 20px 0; font-weight: bold; color: var(--dark); }
+        .instruction { font-size: 1.1rem; color: #e67e22; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -97,31 +94,33 @@
     <div id="progress-bar" class="hidden"><div id="progress-fill"></div></div>
     
     <div id="start-screen">
-        <h1>上肢功能受損程度問卷<br>(QuickDASH)</h1>
-        <p>此評估會自動朗讀問題。<br>請點擊下方藍色按鈕開始。</p>
-        <button class="btn-start" onclick="startAssessment()">開始評估 (START)</button>
+        <h1 style="color: var(--dark);">上肢功能問卷 (QuickDASH)</h1>
+        <p>請點擊下方藍色按鈕開始</p>
+        <button class="btn-start" onclick="startAssessment()">開始 (START)</button>
     </div>
 
     <div id="question-screen" class="hidden">
         <h2 id="question-number" style="color: var(--blue);">第 1 題</h2>
-        <p id="question-text">載入中...</p>
+        <p id="question-text"></p>
         
         <div class="btn-grid">
-            <button class="btn-1" onclick="handleAnswer(1)">1. 沒有困難</button>
-            <button class="btn-2" onclick="handleAnswer(2)">2. 少許困難</button>
-            <button class="btn-3" onclick="handleAnswer(3)">3. 中度困難</button>
-            <button class="btn-4" onclick="handleAnswer(4)">4. 非常困難</button>
-            <button class="btn-5" onclick="handleAnswer(5)">5. 不能做到</button>
+            <button class="btn-1" onclick="handleAnswer(1)" id="opt1"></button>
+            <button class="btn-2" onclick="handleAnswer(2)" id="opt2"></button>
+            <button class="btn-3" onclick="handleAnswer(3)" id="opt3"></button>
+            <button class="btn-4" onclick="handleAnswer(4)" id="opt4"></button>
+            <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
-        <button class="replay-btn" onclick="speakCurrent()">🔊 重讀問題 (Replay)</button>
+        <button style="background:#eee; color:#333; margin-top:20px; font-size:1rem; padding: 10px 20px;" onclick="speakCurrent()">🔊 重讀問題 (Replay)</button>
     </div>
 
     <div id="result-screen" class="hidden">
-        <h1>評估完成</h1>
-        <p>您的 QuickDASH 分數是：</p>
-        <h2 id="final-score" style="font-size: 4rem; color: var(--blue);">--</h2>
-        <p style="font-size: 1rem; font-weight: normal;">(分數範圍 0-100；分數越高代表越嚴重)</p>
-        <button class="btn-start" onclick="location.reload()">重新開始</button>
+        <h1 style="color: var(--green);">評估完成</h1>
+        <div class="result-box">
+            <span style="font-size: 1.2rem; color: var(--dark);">您的 QuickDASH 分數是：</span>
+            <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
+        </div>
+        <p class="instruction">請記下此分數，並交給您的物理治療師。</p>
+        <button class="btn-start" onclick="location.reload()" style="margin-top: 10px;">重新開始</button>
     </div>
 </div>
 
@@ -146,8 +145,8 @@
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'zh-HK'; // Set to Cantonese
-        msg.rate = 0.85;    // Slower for better understanding
+        msg.lang = 'zh-HK';
+        msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
     }
 
@@ -164,63 +163,56 @@
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
-        // Update button text for symptom-specific questions (Q9-11)
+        let labels = [];
         if (currentStep >= 8) {
-            updateButtons("沒有", "輕微", "中度", "嚴重", "極度");
+            labels = ["沒有", "輕微", "中度", "嚴重", "極度"];
         } else if (currentStep === 6) {
-            updateButtons("完全沒有", "少許", "中度", "頗大程度", "極大程度");
+            labels = ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
         } else {
-            updateButtons("沒有困難", "少許困難", "中度困難", "非常困難", "不能做到");
+            labels = ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
+        }
+
+        for(let i=1; i<=5; i++) {
+            document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
         }
 
         speakCurrent();
     }
 
-    function updateButtons(b1, b2, b3, b4, b5) {
-        document.querySelector('.btn-1').innerText = `1. ${b1}`;
-        document.querySelector('.btn-2').innerText = `2. ${b2}`;
-        document.querySelector('.btn-3').innerText = `3. ${b3}`;
-        document.querySelector('.btn-4').innerText = `4. ${b4}`;
-        document.querySelector('.btn-5').innerText = `5. ${b5}`;
-    }
-
     function speakCurrent() {
         const q = questions[currentStep];
-        const btnText = [
-            document.querySelector('.btn-1').innerText,
-            document.querySelector('.btn-2').innerText,
-            document.querySelector('.btn-3').innerText,
-            document.querySelector('.btn-4').innerText,
-            document.querySelector('.btn-5').innerText
-        ];
+        const b1 = document.getElementById('opt1').innerText.split('. ')[1];
+        const b2 = document.getElementById('opt2').innerText.split('. ')[1];
+        const b3 = document.getElementById('opt3').innerText.split('. ')[1];
+        const b4 = document.getElementById('opt4').innerText.split('. ')[1];
+        const b5 = document.getElementById('opt5').innerText.split('. ')[1];
         
-        let intro = "第" + (currentStep + 1) + "題。" + q;
-        let options = "。請選擇：一，" + btnText[0] + "。二，" + btnText[1] + "。三，" + btnText[2] + "。四，" + btnText[3] + "。五，" + btnText[4] + "。";
-        speak(intro + options);
+        let speechText = `第${currentStep + 1}題。${q}。請選擇：一，${b1}。二，${b2}。三，${b3}。四，${b4}。五，${b5}。`;
+        speak(speechText);
     }
 
     function handleAnswer(points) {
         scores.push(points);
         currentStep++;
-
         if (currentStep < questions.length) {
             loadQuestion();
         } else {
-            showResults();
+            finishAssessment();
         }
     }
 
-    function showResults() {
-        document.getElementById('question-screen').classList.add('hidden');
-        document.getElementById('result-screen').classList.remove('hidden');
-        
+    function finishAssessment() {
         const sum = scores.reduce((a, b) => a + b, 0);
         const finalCalculatedScore = ((sum / 11) - 1) * 25;
+        
+        document.getElementById('question-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = finalCalculatedScore.toFixed(1);
         
-        speak("評估完成。你的分數是 " + finalCalculatedScore.toFixed(1) + "分。");
+        // Final voice instructions for the patient
+        let finishSpeech = `評估完成。你的分數是 ${finalCalculatedScore.toFixed(1)} 分。請記下這個分數，並交給你的物理治療師。`;
+        speak(finishSpeech);
     }
 </script>
-
 </body>
 </html>
