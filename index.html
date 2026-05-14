@@ -50,7 +50,10 @@
             border-radius: 15px;
             cursor: pointer;
             color: white;
+            transition: opacity 0.2s;
         }
+
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .btn-start { background-color: var(--blue); width: 100%; font-size: 1.8rem; }
         .btn-1 { background-color: var(--green); }
@@ -103,14 +106,14 @@
         <h2 id="question-number" style="color: var(--blue);">第 1 題</h2>
         <p id="question-text"></p>
         
-        <div class="btn-grid">
+        <div class="btn-grid" id="options-grid">
             <button class="btn-1" onclick="handleAnswer(1)" id="opt1"></button>
             <button class="btn-2" onclick="handleAnswer(2)" id="opt2"></button>
             <button class="btn-3" onclick="handleAnswer(3)" id="opt3"></button>
             <button class="btn-4" onclick="handleAnswer(4)" id="opt4"></button>
             <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
-        <button style="background:#eee; color:#333; margin-top:20px; font-size:1rem; padding: 10px 20px;" onclick="speakCurrent()">🔊 重讀問題 (Replay)</button>
+        <button id="replay-btn" style="background:#eee; color:#333; margin-top:20px; font-size:1rem; padding: 10px 20px;" onclick="speakCurrent()">🔊 重讀問題 (Replay)</button>
     </div>
 
     <div id="result-screen" class="hidden">
@@ -142,11 +145,14 @@
     let currentStep = 0;
     let scores = [];
 
-    function speak(text) {
+    function speak(text, callback) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
         msg.rate = 0.85;
+        if (callback) {
+            msg.onend = callback;
+        }
         window.speechSynthesis.speak(msg);
     }
 
@@ -173,8 +179,11 @@
         }
 
         for(let i=1; i<=5; i++) {
-            document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
+            const btn = document.getElementById(`opt${i}`);
+            btn.innerText = `${i}. ${labels[i-1]}`;
+            btn.disabled = false;
         }
+        document.getElementById('replay-btn').disabled = false;
 
         speakCurrent();
     }
@@ -192,13 +201,25 @@
     }
 
     function handleAnswer(points) {
+        // Disable buttons to prevent double-tapping during confirmation
+        for(let i=1; i<=5; i++) { document.getElementById(`opt${i}`).disabled = true; }
+        document.getElementById('replay-btn').disabled = true;
+
+        const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
         scores.push(points);
-        currentStep++;
-        if (currentStep < questions.length) {
-            loadQuestion();
-        } else {
-            finishAssessment();
-        }
+        
+        // Confirmation Audio
+        speak(`你選擇咗：${selectedText}。`, () => {
+            // Wait a brief moment after speaking before loading next
+            setTimeout(() => {
+                currentStep++;
+                if (currentStep < questions.length) {
+                    loadQuestion();
+                } else {
+                    finishAssessment();
+                }
+            }, 500);
+        });
     }
 
     function finishAssessment() {
@@ -209,7 +230,6 @@
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = finalCalculatedScore.toFixed(1);
         
-        // Final voice instructions for the patient
         let finishSpeech = `評估完成。你的分數是 ${finalCalculatedScore.toFixed(1)} 分。請記下這個分數，並交給你的物理治療師。`;
         speak(finishSpeech);
     }
