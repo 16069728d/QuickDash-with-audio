@@ -175,7 +175,7 @@
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
-        msg.rate = 0.9;
+        msg.rate = 1.1; // 語速調快至 1.1
         if (callback) msg.onend = callback;
         window.speechSynthesis.speak(msg);
     }
@@ -225,7 +225,6 @@
         const buttons = document.querySelectorAll('button');
         buttons.forEach(b => b.style.pointerEvents = 'none');
 
-        // Spoken confirmation combines colloquial "You chose" with standard option text
         speak(`你揀咗：${selectedText}。`, () => {
             scores.push(points);
             currentStep++;
@@ -243,7 +242,7 @@
         if (currentStep > 0) {
             scores.pop(); 
             currentStep--; 
-            speak("好，返返去上一條題目。", () => {
+            speak("好，返去上一條題目。", () => {
                 loadQuestion();
             });
         }
