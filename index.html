@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDASH 語音評估</title>
+    <title>QuickDASH 廣東話語音評估</title>
     <style>
         :root {
             --green: #26ad60;
@@ -110,7 +110,7 @@
 
         .hidden { display: none !important; }
         p { font-size: 1.5rem; line-height: 1.4; margin: 20px 0; font-weight: bold; color: var(--dark); }
-        .instruction { font-size: 1.2rem; color: #d35400; font-weight: bold; margin-top: 15px; }
+        .instruction { font-size: 1.3rem; color: #d35400; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -119,9 +119,9 @@
     <div id="progress-bar" class="hidden"><div id="progress-fill"></div></div>
     
     <div id="start-screen">
-        <h1 style="color: var(--dark);">QuickDASH 語音評估</h1>
-        <p>請按下方藍色按鈕開始</p>
-        <button class="btn-start" onclick="startAssessment()">開始</button>
+        <h1 style="color: var(--dark);">上肢功能評估 (QuickDASH)</h1>
+        <p>請撳下面藍色掣開始</p>
+        <button class="btn-start" onclick="startAssessment()">開始做問卷</button>
     </div>
 
     <div id="question-screen" class="hidden">
@@ -137,35 +137,35 @@
         </div>
 
         <div class="nav-container">
-            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 上一步</button>
-            <button class="nav-btn" onclick="speakCurrent()">🔊 重讀問題</button>
+            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返去上一條</button>
+            <button class="nav-btn" onclick="speakCurrent(true)">🔊 聽多次題目</button>
         </div>
     </div>
 
     <div id="result-screen" class="hidden">
-        <h1 style="color: var(--green);">評估完成</h1>
+        <h1 style="color: var(--green);">搞掂晒！做完喇！</h1>
         <div class="result-box">
-            <span style="font-size: 1.2rem;">您的分數是：</span>
+            <span style="font-size: 1.2rem;">你嘅 QuickDASH 分數係：</span>
             <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
         </div>
-        <p class="instruction">請記下分數，並交給您的物理治療師。</p>
+        <p class="instruction">記住寫低呢個分數，<br>陣間話畀物理治療師聽呀。</p>
         <button class="btn-start" onclick="location.reload()" style="margin-top: 20px;">重新開始</button>
     </div>
 </div>
 
 <script>
     const questions = [
-        "扭開緊或新的瓶蓋",
-        "做消耗大量體力的家務，例如抹窗或洗擦地板",
-        "提重物或手提包",
+        "扭開緊或者新嘅樽蓋",
+        "做消耗大量體力的家務，例如抹窗或者洗擦地板",
+        "提重物或者手提包",
         "洗背部",
         "用刀切食物",
         "進行一些需要上肢用力或受震盪的康樂活動",
-        "過去一星期，你的上肢問題在多大程度上干擾了你正常的社交活動？",
-        "過去一星期，你的工作或其他日常活動是否受到限制？",
+        "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？",
+        "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？",
         "上肢痛楚（包括肩膀、手臂或手部）",
         "上肢有麻痺或刺痛的感覺",
-        "過去一星期，你是否因為痛楚而感到入睡困難？"
+        "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？"
     ];
 
     let currentStep = 0;
@@ -175,7 +175,7 @@
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-HK';
-        msg.rate = 0.85;
+        msg.rate = 0.9;
         if (callback) msg.onend = callback;
         window.speechSynthesis.speak(msg);
     }
@@ -187,48 +187,46 @@
         loadQuestion();
     }
 
+    function getStandardLabels() {
+        if (currentStep >= 8) return ["沒有", "輕微", "中度", "嚴重", "極度"];
+        if (currentStep === 6) return ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
+        return ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
+    }
+
     function loadQuestion() {
         const q = questions[currentStep];
         document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題`;
         document.getElementById('question-text').innerText = q;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
-        // Return button visibility logic
         const backBtn = document.getElementById('back-btn');
-        if (currentStep > 0) {
-            backBtn.classList.remove('hidden');
-        } else {
-            backBtn.classList.add('hidden');
-        }
+        if (currentStep > 0) backBtn.classList.remove('hidden');
+        else backBtn.classList.add('hidden');
 
-        let labels = [];
-        if (currentStep >= 8) {
-            labels = ["沒有", "輕微", "中度", "嚴重", "極度"];
-        } else if (currentStep === 6) {
-            labels = ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
-        } else {
-            labels = ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
-        }
-
+        const labels = getStandardLabels();
         for(let i=1; i<=5; i++) {
             document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
         }
         speakCurrent();
     }
 
-    function speakCurrent() {
+    function speakCurrent(isReplay = false) {
         const q = questions[currentStep];
-        const opts = [1,2,3,4,5].map(i => document.getElementById(`opt${i}`).innerText.split('. ')[1]);
-        let speech = `第${currentStep + 1}題。${q}。請選擇：一，${opts[0]}。二，${opts[1]}。三，${opts[2]}。四，${opts[3]}。五，${opts[4]}。`;
+        const labels = getStandardLabels();
+        let intro = isReplay ? "等我再讀一次畀你聽。" : `第${currentStep + 1}題。`;
+        let speech = `${intro}${q}。請選擇：第一，${labels[0]}；第二，${labels[1]}；第三，${labels[2]}；第四，${labels[3]}；第五，${labels[4]}。`;
         speak(speech);
     }
 
     function handleAnswer(points) {
-        const selectedText = document.getElementById(`opt${points}`).innerText.split('. ')[1];
+        const labels = getStandardLabels();
+        const selectedText = labels[points - 1];
+        
         const buttons = document.querySelectorAll('button');
         buttons.forEach(b => b.style.pointerEvents = 'none');
 
-        speak(`你選擇了：${selectedText}`, () => {
+        // Spoken confirmation combines colloquial "You chose" with standard option text
+        speak(`你揀咗：${selectedText}。`, () => {
             scores.push(points);
             currentStep++;
             buttons.forEach(b => b.style.pointerEvents = 'auto');
@@ -245,7 +243,7 @@
         if (currentStep > 0) {
             scores.pop(); 
             currentStep--; 
-            speak("返回上一題", () => {
+            speak("好，返返去上一條題目。", () => {
                 loadQuestion();
             });
         }
@@ -258,7 +256,7 @@
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = finalScore.toFixed(1);
         
-        speak(`評估完成。你的分數是 ${finalScore.toFixed(1)} 分。請記下這個分數，並交給你的物理治療師。`);
+        speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`);
     }
 </script>
 </body>
