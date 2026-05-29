@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDASH 上肢功能評估</title>
+    <title>QuickDASH 廣東話語音評估</title>
     <style>
         :root {
             --green: #26ad60;
@@ -120,8 +120,8 @@
     
     <div id="start-screen">
         <h1 style="color: var(--dark);">上肢功能評估 (QuickDASH)</h1>
-        <p>請按下方按鈕開始</p>
-        <button class="btn-start" onclick="startAssessment()">開始評估</button>
+        <p>請撳下面藍色掣開始</p>
+        <button class="btn-start" onclick="startAssessment()">開始做問卷</button>
     </div>
 
     <div id="question-screen" class="hidden">
@@ -137,28 +137,28 @@
         </div>
 
         <div class="nav-container">
-            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返回上一題</button>
-            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複語音</button>
+            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返回上一條</button>
+            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複多次題目</button>
         </div>
     </div>
 
     <div id="result-screen" class="hidden">
-        <h1 style="color: var(--green);">評估完成！</h1>
+        <h1 style="color: var(--green);">搞掂晒！做完喇！</h1>
         <div class="result-box">
-            <span style="font-size: 1.2rem;">您的 QuickDASH 分數為：</span>
+            <span style="font-size: 1.2rem;">你嘅 QuickDASH 分數係：</span>
             <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
         </div>
-        <p class="instruction">請記錄此分數，<br>並告知您的物理治療師。</p>
+        <p class="instruction">記住寫低呢個分數，<br>陣間話畀物理治療師聽呀。</p>
         <button class="btn-start" onclick="location.reload()" style="margin-top: 20px;">重新開始</button>
     </div>
 </div>
 
 <script>
-    // 將題目分開「顯示用 (書面語)」同「朗讀用 (口語)」
+    // 保留原本顯示文字，用語音專屬口語化字眼
     const questionsData = [
-        { display: "扭開緊或新的瓶蓋", speak: "扭開好實、或者新嘅樽蓋" },
-        { display: "做消耗大量體力的家務，例如抹窗或洗擦地板", speak: "做要用好多體力嘅家務，例如抹窗或者洗地" },
-        { display: "提重物或手提包", speak: "拎重嘢或者手袋" },
+        { display: "扭開緊或者新嘅樽蓋", speak: "扭開好實、或者新嘅樽蓋" },
+        { display: "做消耗大量體力的家務，例如抹窗或者洗擦地板", speak: "做要用好多體力嘅家務，例如抹窗或者洗地" },
+        { display: "提重物或者手提包", speak: "拎重嘢或者手袋" },
         { display: "洗背部", speak: "沖涼洗背脊" },
         { display: "用刀切食物", speak: "用刀切嘢食" },
         { display: "進行一些需要上肢用力或受震盪的康樂活動", speak: "做一啲手部要用力、或者會受震盪嘅康樂活動" },
@@ -185,6 +185,7 @@
         currentUtterance.onend = () => {
             if (callback) callback();
             
+            // 讀完題目後倒數 20 秒
             if (isQuestion) {
                 repeatTimeout = setTimeout(() => {
                     speakCurrent(true);
@@ -200,12 +201,8 @@
         document.getElementById('question-screen').classList.remove('hidden');
         document.getElementById('progress-bar').classList.remove('hidden');
         loadQuestion();
-        
-        // 歡迎語音
-        speak("評估開始。", null, false);
     }
 
-    // 將選項分開「顯示用 (書面語)」同「朗讀用 (口語)」
     function getLabels() {
         if (currentStep >= 8) {
             return {
@@ -229,7 +226,7 @@
         const q = questionsData[currentStep];
         document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題`;
         
-        // 畫面顯示書面語
+        // 畫面顯示原本字眼
         document.getElementById('question-text').innerText = q.display;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
@@ -239,11 +236,10 @@
 
         const labels = getLabels();
         for(let i=1; i<=5; i++) {
-            // 畫面顯示書面語選項
+            // 按鈕顯示原本字眼
             document.getElementById(`opt${i}`).innerText = `${i}. ${labels.display[i-1]}`;
         }
         
-        // 朗讀口語
         speakCurrent();
     }
 
@@ -261,7 +257,6 @@
         clearTimeout(repeatTimeout);
         window.speechSynthesis.cancel();
 
-        // 獲取口語選項作爲確認語音
         const labelsSpeak = getLabels().speak;
         const selectedText = labelsSpeak[points - 1];
         
@@ -304,7 +299,6 @@
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = finalScore.toFixed(1);
         
-        // 結果朗讀保持口語化
         speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`, null, false);
     }
 </script>
