@@ -154,7 +154,7 @@
 </div>
 
 <script>
-    // 保留原本顯示文字，用語音專屬口語化字眼
+    // 保留原本畫面顯示文字，語音則採用更自然的口語化對話字眼
     const questionsData = [
         { display: "扭開緊或者新嘅樽蓋", speak: "扭開好實、或者新嘅樽蓋" },
         { display: "做消耗大量體力的家務，例如抹窗或者洗擦地板", speak: "做要用好多體力嘅家務，例如抹窗或者洗地" },
@@ -180,12 +180,12 @@
 
         currentUtterance = new SpeechSynthesisUtterance(text);
         currentUtterance.lang = 'zh-HK';
-        currentUtterance.rate = 1.05; 
+        currentUtterance.rate = 1.15; // 語速微調至 1.15，聽落更加似平時對話口吻
         
         currentUtterance.onend = () => {
             if (callback) callback();
             
-            // 讀完題目後倒數 20 秒
+            // 讀完題目後倒數 20 秒自動重重複
             if (isQuestion) {
                 repeatTimeout = setTimeout(() => {
                     speakCurrent(true);
