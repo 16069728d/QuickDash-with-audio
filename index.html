@@ -154,30 +154,47 @@
 </div>
 
 <script>
+    // 口語化題目
     const questions = [
-        "扭開緊或者新嘅樽蓋",
-        "做消耗大量體力的家務，例如抹窗或者洗擦地板",
-        "提重物或者手提包",
-        "洗背部",
-        "用刀切食物",
-        "進行一些需要上肢用力或受震盪的康樂活動",
-        "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？",
-        "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？",
-        "上肢痛楚（包括肩膀、手臂或手部）",
-        "上肢有麻痺或刺痛的感覺",
-        "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？"
+        "扭開好實、或者新嘅樽蓋",
+        "做要用好多體力嘅家務，例如抹窗或者洗地",
+        "拎重嘢或者手袋",
+        "沖涼洗背脊",
+        "用刀切嘢食",
+        "做一啲手部要用力、或者會受震盪嘅康樂活動",
+        "過去一星期，你手部嘅問題有幾影響你平時嘅社交活動？",
+        "過去一星期，你返工或者其他日常活動，有冇因為手部問題而受到限制？",
+        "手部痛楚，包括膊頭、手臂或者手掌",
+        "手部有麻痺或者刺痛嘅感覺",
+        "過去一星期，你有冇因為手痛而覺得好難入睡？"
     ];
 
     let currentStep = 0;
     let scores = [];
+    let repeatTimeout; // 用嚟裝 20 秒倒數計時器
+    let currentUtterance; // 保存發音物件，防止被瀏覽器 Garbage Collection 導致 onend 唔觸發
 
-    function speak(text, callback) {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'zh-HK';
-        msg.rate = 1.1; 
-        if (callback) msg.onend = callback;
-        window.speechSynthesis.speak(msg);
+    // 加入 isQuestion 參數，分辨係咪讀緊題目需要計時
+    function speak(text, callback, isQuestion = false) {
+        window.speechSynthesis.cancel(); // 停止目前語音
+        clearTimeout(repeatTimeout); // 清除舊嘅計時器
+
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = 'zh-HK';
+        currentUtterance.rate = 1.05; // 稍微收慢少少，聽得清楚啲
+        
+        currentUtterance.onend = () => {
+            if (callback) callback();
+            
+            // 如果讀完嘅係題目，就開始倒數 20 秒自動重讀
+            if (isQuestion) {
+                repeatTimeout = setTimeout(() => {
+                    speakCurrent(true);
+                }, 20000); // 20000 毫秒 = 20 秒
+            }
+        };
+        
+        window.speechSynthesis.speak(currentUtterance);
     }
 
     function startAssessment() {
@@ -187,10 +204,11 @@
         loadQuestion();
     }
 
+    // 口語化選項
     function getStandardLabels() {
-        if (currentStep >= 8) return ["沒有", "輕微", "中度", "嚴重", "極度"];
-        if (currentStep === 6) return ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
-        return ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
+        if (currentStep >= 8) return ["完全冇", "輕微", "中度", "嚴重", "極度嚴重"];
+        if (currentStep === 6 || currentStep === 7) return ["完全冇", "有少少", "中等", "幾大程度", "極大程度"];
+        return ["完全冇困難", "有少少困難", "中度困難", "非常困難", "完全做唔到"];
     }
 
     function loadQuestion() {
@@ -213,13 +231,19 @@
     function speakCurrent(isReplay = false) {
         const q = questions[currentStep];
         const labels = getStandardLabels();
-        // 更改重讀時嘅語音開首為「重複多次題目。」
-        let intro = isReplay ? "重複多次題目。" : `第${currentStep + 1}題。`;
-        let speech = `${intro}${q}。請選擇：第一，${labels[0]}；第二，${labels[1]}；第三，${labels[2]}；第四，${labels[3]}；第五，${labels[4]}。`;
-        speak(speech);
+        let intro = isReplay ? "等我重複多次條題目。" : `第${currentStep + 1}題。`;
+        // 改用「一、二、三」代替「第一、第二」，聽落自然啲
+        let speech = `${intro}${q}。請選擇：一，${labels[0]}；二，${labels[1]}；三，${labels[2]}；四，${labels[3]}；五，${labels[4]}。`;
+        
+        // 傳入 true，話畀 speak function 知依家讀緊題目，讀完要計時
+        speak(speech, null, true);
     }
 
     function handleAnswer(points) {
+        // 用家㩒掣，即刻取消計時器同語音
+        clearTimeout(repeatTimeout);
+        window.speechSynthesis.cancel();
+
         const labels = getStandardLabels();
         const selectedText = labels[points - 1];
         
@@ -236,28 +260,34 @@
             } else {
                 showResults();
             }
-        });
+        }, false); // 讀答案確認唔需要倒數計時
     }
 
     function goBack() {
+        // 用家㩒返回，即刻取消計時器同語音
+        clearTimeout(repeatTimeout);
+        window.speechSynthesis.cancel();
+
         if (currentStep > 0) {
             scores.pop(); 
             currentStep--; 
-            // 更改返回時嘅語音提示為「返回上一條題目。」
             speak("返回上一條題目。", () => {
                 loadQuestion();
-            });
+            }, false);
         }
     }
 
     function showResults() {
+        clearTimeout(repeatTimeout);
+        window.speechSynthesis.cancel();
+
         const sum = scores.reduce((a, b) => a + b, 0);
         const finalScore = ((sum / 11) - 1) * 25;
         document.getElementById('question-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = finalScore.toFixed(1);
         
-        speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`);
+        speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`, null, false);
     }
 </script>
 </body>
