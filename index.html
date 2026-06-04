@@ -176,16 +176,16 @@
     let repeatTimeout; 
     let currentUtterance; 
 
-    // 特意為長者調至極慢嘅語速 (Ultra-slow speech rate configuration for elderly patients)
+    // 極度緩慢、清晰嘅長者友善語速設定 (Maximized slow pacing for elder clarity)
     function getAdjustedRate() {
         const userAgent = navigator.userAgent || navigator.vendor || window.opera;
         if (/iPad|iPhone|iPod|Macintosh/.test(userAgent)) {
-            return 0.65; // Apple 裝置：進一步調慢至 0.65
+            return 0.55; // Apple 裝置：原預設極快，現大幅放慢至近乎半速
         }
         if (/Android/.test(userAgent)) {
-            return 0.75;  // Android 裝置：進一步調慢至 0.75
+            return 0.60;  // Android 裝置：非常緩慢且穩定的節奏
         }
-        return 0.80;     // Windows/桌面版：進一步調慢至 0.80
+        return 0.65;     // Windows/桌面版：極清晰慢速
     }
 
     function speak(text, callback, isQuestion = false) {
