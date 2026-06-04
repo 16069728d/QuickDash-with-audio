@@ -164,7 +164,7 @@
         { display: "洗背部", speak: "沖涼洗背脊" },
         { display: "用刀切食物", speak: "用刀切嘢食" },
         { display: "進行一些需要上肢用力或受震盪的康樂活動", speak: "做一啲手部要用力、或者會受震盪嘅康樂活動" },
-        { display: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", speak: "過去一星期，你手部嘅問題有幾影響你平時嘅社交活動？" },
+        { display: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", speak: "過去一星期，局部嘅問題有幾影響你平時嘅社交活動？" },
         { display: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", speak: "過去一星期，你返工或者其他日常活動，有冇因為手部問題而受到限制？" },
         { display: "上肢痛楚（包括肩膀、手臂或手部）", speak: "手部痛楚，包括膊頭、手臂或者手掌" },
         { display: "上肢有麻痺或刺痛的感覺", speak: "手部有麻痺或者刺痛嘅感覺" },
@@ -176,16 +176,16 @@
     let repeatTimeout; 
     let currentUtterance; 
 
-    // 依據不同作業系統調整語速，以達到均勻恆常的聽覺效果
+    // 調慢了的語速設定 (Slower speech rate configurations)
     function getAdjustedRate() {
         const userAgent = navigator.userAgent || navigator.vendor || window.opera;
         if (/iPad|iPhone|iPod|Macintosh/.test(userAgent)) {
-            return 0.85; // Apple 裝置預設語速偏快，稍微調慢
+            return 0.75; // Apple 裝置：由原先 0.85 再調慢至 0.75
         }
         if (/Android/.test(userAgent)) {
-            return 1.0;  // Android 裝置採用標準速
+            return 0.85;  // Android 裝置：由原先 1.0 調慢至 0.85
         }
-        return 1.15;     // Windows 或其他案頭版預設偏慢，稍微加速
+        return 0.95;     // Windows/桌面版：由原先 1.15 調慢至 0.95
     }
 
     function speak(text, callback, isQuestion = false) {
@@ -196,7 +196,6 @@
         currentUtterance.lang = 'zh-HK';
         currentUtterance.rate = getAdjustedRate(); 
         
-        // 優先選取系統內建的高品質廣東話語音
         const voices = window.speechSynthesis.getVoices();
         const hkVoices = voices.filter(v => v.lang === 'zh-HK' || v.lang === 'zh_HK');
         if (hkVoices.length > 0) {
@@ -320,7 +319,6 @@
         speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`, null, false);
     }
 
-    // 確保瀏覽器能正確預加載語音清單
     window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
     };
