@@ -164,7 +164,7 @@
         { display: "洗背部", speak: "沖涼洗背脊" },
         { display: "用刀切食物", speak: "用刀切嘢食" },
         { display: "進行一些需要上肢用力或受震盪的康樂活動", speak: "做一啲手部要用力、或者會受震盪嘅康樂活動" },
-        { display: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", speak: "過去一星期，局部嘅問題有幾影響你平時嘅社交活動？" },
+        { display: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", speak: "過去一星期，你手部嘅問題有幾影響你平時嘅社交活動？" },
         { display: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", speak: "過去一星期，你返工或者其他日常活動，有冇因為手部問題而受到限制？" },
         { display: "上肢痛楚（包括肩膀、手臂或手部）", speak: "手部痛楚，包括膊頭、手臂或者手掌" },
         { display: "上肢有麻痺或刺痛的感覺", speak: "手部有麻痺或者刺痛嘅感覺" },
@@ -176,16 +176,16 @@
     let repeatTimeout; 
     let currentUtterance; 
 
-    // 調慢了的語速設定 (Slower speech rate configurations)
+    // 特意為長者調至極慢嘅語速 (Ultra-slow speech rate configuration for elderly patients)
     function getAdjustedRate() {
         const userAgent = navigator.userAgent || navigator.vendor || window.opera;
         if (/iPad|iPhone|iPod|Macintosh/.test(userAgent)) {
-            return 0.75; // Apple 裝置：由原先 0.85 再調慢至 0.75
+            return 0.65; // Apple 裝置：進一步調慢至 0.65
         }
         if (/Android/.test(userAgent)) {
-            return 0.85;  // Android 裝置：由原先 1.0 調慢至 0.85
+            return 0.75;  // Android 裝置：進一步調慢至 0.75
         }
-        return 0.95;     // Windows/桌面版：由原先 1.15 調慢至 0.95
+        return 0.80;     // Windows/桌面版：進一步調慢至 0.80
     }
 
     function speak(text, callback, isQuestion = false) {
