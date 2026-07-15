@@ -43,31 +43,47 @@
             margin-top: 20px;
         }
 
-        button {
+        /* Base button styles */
+        .opt-btn {
             padding: 22px;
             font-size: 1.4rem;
             font-weight: bold;
-            border: none;
+            border: 3px solid transparent;
             border-radius: 15px;
             cursor: pointer;
             color: white;
-            transition: transform 0.1s;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s, box-shadow 0.3s;
         }
 
-        button:active { transform: scale(0.98); }
+        .opt-btn:active { transform: scale(0.98); }
 
-        .btn-start { background-color: var(--blue); width: 100%; font-size: 1.8rem; }
+        /* Dynamic Visual Cues */
+        .btn-dimmed {
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+
+        .btn-highlight {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 3px solid #2c3e50;
+            z-index: 10;
+        }
+
+        .btn-start { background-color: var(--blue); width: 100%; font-size: 1.8rem; padding: 22px; border: none; border-radius: 15px; color: white; cursor: pointer; font-weight: bold;}
         .btn-1 { background-color: var(--green); }
-        .btn-2 { background-color: var(--light-green); }
+        .btn-2 { background-color: var(--light-green); color: var(--dark); }
         .btn-3 { background-color: var(--yellow); color: var(--dark); }
         .btn-4 { background-color: var(--orange); }
         .btn-5 { background-color: var(--red); }
         
         .nav-container {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-top: 30px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -76,13 +92,15 @@
             font-size: 1.1rem;
             padding: 15px;
             flex: 1;
+            min-width: 120px;
             border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        .back-btn {
-            background-color: var(--grey);
-            color: white;
-        }
+        .back-btn { background-color: var(--grey); color: white; }
+        .explain-btn { background-color: #ffeaa7; color: #d35400; }
 
         #progress-bar {
             width: 100%;
@@ -132,16 +150,17 @@
         <p id="question-text"></p>
         
         <div class="btn-grid">
-            <button class="btn-1" onclick="handleAnswer(1)" id="opt1"></button>
-            <button class="btn-2" onclick="handleAnswer(2)" id="opt2"></button>
-            <button class="btn-3" onclick="handleAnswer(3)" id="opt3"></button>
-            <button class="btn-4" onclick="handleAnswer(4)" id="opt4"></button>
-            <button class="btn-5" onclick="handleAnswer(5)" id="opt5"></button>
+            <button class="opt-btn btn-1" onclick="handleAnswer(1)" id="opt1"></button>
+            <button class="opt-btn btn-2" onclick="handleAnswer(2)" id="opt2"></button>
+            <button class="opt-btn btn-3" onclick="handleAnswer(3)" id="opt3"></button>
+            <button class="opt-btn btn-4" onclick="handleAnswer(4)" id="opt4"></button>
+            <button class="opt-btn btn-5" onclick="handleAnswer(5)" id="opt5"></button>
         </div>
 
         <div class="nav-container">
-            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返回上一條</button>
-            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複多次題目</button>
+            <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返回</button>
+            <button class="nav-btn explain-btn" onclick="speakExplanation()">💡 聽口語解釋</button>
+            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複題目</button>
         </div>
     </div>
 
@@ -157,55 +176,40 @@
 </div>
 
 <script>
+    // Unified text structure. 'text' is strictly read. 'explanation' is colloquial context.
     const questionsData = [
-        { display: "扭開緊或者新嘅樽蓋", speak: "扭開好實、或者新嘅樽蓋" },
-        { display: "做消耗大量體力的家務，例如抹窗或者洗擦地板", speak: "做要用好多體力嘅家務，例如抹窗或者洗地" },
-        { display: "提重物或者手提包", speak: "拎重嘢或者手袋" },
-        { display: "洗背部", speak: "沖涼洗背脊" },
-        { display: "用刀切食物", speak: "用刀切嘢食" },
-        { display: "進行一些需要上肢用力或受震盪的康樂活動", speak: "做一啲手部要用力、或者會受震盪嘅康樂活動" },
-        { display: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", speak: "過去一星期，你手部嘅問題有幾影響你平時嘅社交活動？" },
-        { display: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", speak: "過去一星期，你返工或者其他日常活動，有冇因為手部問題而受到限制？" },
-        { display: "上肢痛楚（包括肩膀、手臂或手部）", speak: "手部痛楚，包括膊頭、手臂或者手掌" },
-        { display: "上肢有麻痺或刺痛的感覺", speak: "手部有麻痺或者刺痛嘅感覺" },
-        { display: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", speak: "過去一星期，你有冇因為手痛而覺得好難入睡？" }
+        { text: "扭開緊或者新的樽蓋", explanation: "即係扭開好實、或者新買返嚟未開過嘅樽蓋" },
+        { text: "做消耗大量體力的家務，例如抹窗或者洗擦地板", explanation: "即係做一啲要用好多氣力嘅家務，例如抹窗或者拖地" },
+        { text: "提重物或者手提包", explanation: "即係拎重嘢，或者抽住個手袋" },
+        { text: "洗背部", explanation: "即係沖涼嗰陣時洗背脊" },
+        { text: "用刀切食物", explanation: "即係煮飯食飯嗰陣，用刀切嘢食" },
+        { text: "進行一些需要上肢用力或受震盪的康樂活動", explanation: "即係做一啲手部要用力、或者會受震盪嘅運動，例如打波、游水" },
+        { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？" },
+        { text: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", explanation: "過去一個星期，你返工或者做其他日常活動嗰陣，有冇因為手部嘅問題而覺得做唔到？" },
+        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛" },
+        { text: "上肢有麻痺或刺痛的感覺", explanation: "即係隻手有痺嘅感覺，或者好似有針拮嘅痛楚" },
+        { text: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著？" }
     ];
 
     let currentStep = 0;
     let scores = [];
     let repeatTimeout; 
-    let currentUtterance; 
+    let sequenceId = 0; // Used to abort previous speech sequences if the user clicks quickly
 
-    // 全面固定使用 0.75 慢速語速 (Locked strictly to 0.75 for clear, steady narration)
+    // Fixed steady rate
     function getAdjustedRate() {
         return 0.75; 
     }
 
-    function speak(text, callback, isQuestion = false) {
-        window.speechSynthesis.cancel(); 
-        clearTimeout(repeatTimeout); 
-
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.lang = 'zh-HK';
-        currentUtterance.rate = getAdjustedRate(); 
-        
-        const voices = window.speechSynthesis.getVoices();
-        const hkVoices = voices.filter(v => v.lang === 'zh-HK' || v.lang === 'zh_HK');
-        if (hkVoices.length > 0) {
-            currentUtterance.voice = hkVoices.find(v => v.name.includes('Premium') || v.name.includes('Google')) || hkVoices[0];
+    // Exact text mapping for buttons and speech
+    function getLabels() {
+        if (currentStep >= 8) {
+            return ["沒有", "輕微", "中度", "嚴重", "極度"];
         }
-        
-        currentUtterance.onend = () => {
-            if (callback) callback();
-            
-            if (isQuestion) {
-                repeatTimeout = setTimeout(() => {
-                    speakCurrent(true);
-                }, 20000); 
-            }
-        };
-        
-        window.speechSynthesis.speak(currentUtterance);
+        if (currentStep === 6) {
+            return ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
+        }
+        return ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
     }
 
     function startAssessment() {
@@ -215,30 +219,10 @@
         loadQuestion();
     }
 
-    function getLabels() {
-        if (currentStep >= 8) {
-            return {
-                display: ["沒有", "輕微", "中度", "嚴重", "極度"],
-                speak: ["完全冇", "輕微", "中度", "嚴重", "極度嚴重"]
-            };
-        }
-        if (currentStep === 6) {
-            return {
-                display: ["完全沒有", "少許", "中度", "頗大程度", "極大程度"],
-                speak: ["完全冇", "有少少", "中等", "幾大程度", "極大程度"]
-            };
-        }
-        return {
-            display: ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"],
-            speak: ["完全冇困難", "有少少困難", "中度困難", "非常困難", "完全做唔到"]
-        };
-    }
-
     function loadQuestion() {
         const q = questionsData[currentStep];
         document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題`;
-        
-        document.getElementById('question-text').innerText = q.display;
+        document.getElementById('question-text').innerText = q.text;
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
         const backBtn = document.getElementById('back-btn');
@@ -247,33 +231,115 @@
 
         const labels = getLabels();
         for(let i=1; i<=5; i++) {
-            document.getElementById(`opt${i}`).innerText = `${i}. ${labels.display[i-1]}`;
+            document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
         }
         
         speakCurrent();
     }
 
-    function speakCurrent(isReplay = false) {
-        const qSpeak = questionsData[currentStep].speak;
-        const labelsSpeak = getLabels().speak;
+    // Halts any ongoing speech and clears styles
+    function stopSpeaking() {
+        sequenceId++; // Invalidates the current sequence promise chain
+        window.speechSynthesis.cancel();
+        clearTimeout(repeatTimeout);
+        resetButtonStyles();
+    }
+
+    function resetButtonStyles() {
+        for(let i=1; i<=5; i++) {
+            let btn = document.getElementById(`opt${i}`);
+            btn.classList.remove('btn-dimmed', 'btn-highlight');
+        }
+    }
+
+    // Core TTS Promise wrapper to allow sequential asynchronous playback
+    function speakPromise(text, seq) {
+        return new Promise(resolve => {
+            if (seq !== sequenceId) return resolve(); // Abort if sequence changed
+            
+            window.currentUtterance = new SpeechSynthesisUtterance(text);
+            window.currentUtterance.lang = 'zh-HK';
+            window.currentUtterance.rate = getAdjustedRate();
+            
+            const voices = window.speechSynthesis.getVoices();
+            const hkVoices = voices.filter(v => v.lang === 'zh-HK' || v.lang === 'zh_HK');
+            if (hkVoices.length > 0) {
+                window.currentUtterance.voice = hkVoices.find(v => v.name.includes('Premium') || v.name.includes('Google')) || hkVoices[0];
+            }
+            
+            window.currentUtterance.onend = resolve;
+            window.currentUtterance.onerror = resolve; // Proceed on error
+            
+            window.speechSynthesis.speak(window.currentUtterance);
+        });
+    }
+
+    // Sequence to speak question, then pop out options one by one
+    async function speakCurrent(isReplay = false) {
+        stopSpeaking();
+        const currentSeq = sequenceId;
+        const q = questionsData[currentStep];
+        const labels = getLabels();
         
-        let intro = isReplay ? "等我重複多次條題目。" : `第${currentStep + 1}題。`;
-        let speech = `${intro}${qSpeak}。請選擇：一，${labelsSpeak[0]}；二，${labelsSpeak[1]}；三，${labelsSpeak[2]}；四，${labelsSpeak[3]}；五，${labelsSpeak[4]}。`;
+        let intro = isReplay ? "重複題目。" : `第 ${currentStep + 1} 題。`;
         
-        speak(speech, null, true);
+        // 1. Speak the question text
+        await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
+        if (currentSeq !== sequenceId) return; // Exit if user interrupted
+
+        // 2. Loop through options and highlight them as they are read
+        for(let i=1; i<=5; i++) {
+            if (currentSeq !== sequenceId) return;
+
+            // Apply visual cues: dim all, highlight current
+            for(let j=1; j<=5; j++) {
+                let btn = document.getElementById(`opt${j}`);
+                if(j === i) {
+                    btn.classList.add('btn-highlight');
+                    btn.classList.remove('btn-dimmed');
+                } else {
+                    btn.classList.add('btn-dimmed');
+                    btn.classList.remove('btn-highlight');
+                }
+            }
+
+            // Speak the option exactly as written
+            await speakPromise(`第 ${i}，${labels[i-1]}`, currentSeq);
+        }
+
+        if (currentSeq !== sequenceId) return;
+        
+        // 3. Cleanup: remove highlights after sequence finishes
+        resetButtonStyles();
+
+        // 4. Set auto-repeat timer
+        repeatTimeout = setTimeout(() => {
+            speakCurrent(true);
+        }, 15000); 
+    }
+
+    // Play colloquial explanation, then replay the options
+    async function speakExplanation() {
+        stopSpeaking();
+        const currentSeq = sequenceId;
+        const q = questionsData[currentStep];
+        
+        await speakPromise(`口語解釋：${q.explanation}。`, currentSeq);
+        
+        if (currentSeq === sequenceId) {
+            speakCurrent(false); // Automatically replay the question & options afterward
+        }
     }
 
     function handleAnswer(points) {
-        clearTimeout(repeatTimeout);
-        window.speechSynthesis.cancel();
-
-        const labelsSpeak = getLabels().speak;
-        const selectedText = labelsSpeak[points - 1];
+        stopSpeaking(); // Immediately stop speech and highlights
         
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(b => b.style.pointerEvents = 'none');
+        const buttons = document.querySelectorAll('.opt-btn');
+        buttons.forEach(b => b.style.pointerEvents = 'none'); // Prevent double click
 
-        speak(`你揀咗：${selectedText}。`, () => {
+        // Read confirmation of selection
+        const selectedText = getLabels()[points - 1];
+        speakPromise(`你揀咗：${selectedText}。`, sequenceId).then(() => {
             scores.push(points);
             currentStep++;
             buttons.forEach(b => b.style.pointerEvents = 'auto');
@@ -283,33 +349,33 @@
             } else {
                 showResults();
             }
-        }, false); 
+        });
     }
 
     function goBack() {
-        clearTimeout(repeatTimeout);
-        window.speechSynthesis.cancel();
+        stopSpeaking();
 
         if (currentStep > 0) {
             scores.pop(); 
             currentStep--; 
-            speak("返回上一條題目。", () => {
+            speakPromise("返回上一條題目。", sequenceId).then(() => {
                 loadQuestion();
-            }, false);
+            });
         }
     }
 
     function showResults() {
-        clearTimeout(repeatTimeout);
-        window.speechSynthesis.cancel();
+        stopSpeaking();
 
         const sum = scores.reduce((a, b) => a + b, 0);
-        const finalScore = ((sum / 11) - 1) * 25;
+        // Score automation: explicitly rounded to match standard conversion charts
+        const finalScore = Math.round(((sum / 11) - 1) * 25); 
+        
         document.getElementById('question-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
-        document.getElementById('final-score').innerText = finalScore.toFixed(1);
+        document.getElementById('final-score').innerText = finalScore;
         
-        speak(`做完晒喇！你嘅分數係 ${finalScore.toFixed(1)} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`, null, false);
+        speakPromise(`做完晒喇！你嘅分數係 ${finalScore} 分。記住要寫低呢個分數，陣間話畀你嘅物理治療師聽呀。`, sequenceId);
     }
 
     window.speechSynthesis.onvoiceschanged = () => {
