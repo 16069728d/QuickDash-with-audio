@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDASH 廣東話語音評估</title>
+    <title>QuickDASH 廣東話語音評估 (配圖版)</title>
     <style>
         :root {
             --green: #26ad60;
@@ -39,20 +39,35 @@
         .btn-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
+            gap: 12px;
             margin-top: 20px;
         }
 
         /* Base button styles */
         .opt-btn {
-            padding: 22px;
+            padding: 15px 22px;
             font-size: 1.4rem;
             font-weight: bold;
             border: 3px solid transparent;
             border-radius: 15px;
             cursor: pointer;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s, box-shadow 0.3s;
+        }
+
+        .opt-btn span.emoji {
+            font-size: 2rem; /* Make the facial expression big */
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .opt-btn:active { transform: scale(0.98); }
@@ -81,7 +96,7 @@
         .nav-container {
             display: flex;
             gap: 10px;
-            margin-top: 30px;
+            margin-top: 25px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -97,6 +112,10 @@
             border: none;
             cursor: pointer;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .back-btn { background-color: var(--grey); color: white; }
@@ -107,7 +126,7 @@
             height: 12px;
             background: #e0e0e0;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             overflow: hidden;
         }
 
@@ -126,8 +145,20 @@
             background-color: #f8fbff;
         }
 
+        /* Question Visual Area */
+        #question-visual {
+            font-size: 4.5rem;
+            background: #f8fbff;
+            border: 3px dashed #bdc3c7;
+            border-radius: 20px;
+            padding: 10px;
+            margin: 10px 0;
+            display: inline-block;
+            min-width: 150px;
+        }
+
         .hidden { display: none !important; }
-        p { font-size: 1.5rem; line-height: 1.4; margin: 20px 0; font-weight: bold; color: var(--dark); }
+        p { font-size: 1.4rem; line-height: 1.4; margin: 15px 0; font-weight: bold; color: var(--dark); }
         .instruction { font-size: 1.3rem; color: #d35400; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
@@ -141,12 +172,17 @@
         <h2 style="color: var(--grey); font-size: 1.3rem; margin-top: -10px; margin-bottom: 35px; font-weight: bold;">
             新界東醫院聯網 物理治療部
         </h2>
+        <div style="font-size: 5rem; margin-bottom: 20px;">📋💪</div>
         <p>請撳下面藍色掣開始</p>
         <button class="btn-start" onclick="startAssessment()">開始做問卷</button>
     </div>
 
     <div id="question-screen" class="hidden">
-        <h2 id="question-number" style="color: var(--blue);">第 1 題</h2>
+        <h2 id="question-number" style="color: var(--blue); margin-bottom: 5px;">第 1 題</h2>
+        
+        <!-- Visual Cue Area -->
+        <div id="question-visual">🫙</div>
+        
         <p id="question-text"></p>
         
         <div class="btn-grid">
@@ -159,13 +195,14 @@
 
         <div class="nav-container">
             <button id="back-btn" class="nav-btn back-btn hidden" onclick="goBack()">⬅ 返回</button>
-            <button class="nav-btn explain-btn" onclick="speakExplanation()">💡 聽口語解釋</button>
-            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複題目</button>
+            <button class="nav-btn explain-btn" onclick="speakExplanation()">💡 聽解釋</button>
+            <button class="nav-btn" onclick="speakCurrent(true)">🔊 重複</button>
         </div>
     </div>
 
     <div id="result-screen" class="hidden">
         <h1 style="color: var(--green);">搞掂晒！做完喇！</h1>
+        <div style="font-size: 4rem; margin: 10px 0;">🎉👏</div>
         <div class="result-box">
             <span style="font-size: 1.2rem;">你嘅 QuickDASH 分數係：</span>
             <div id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--blue);">--</div>
@@ -176,40 +213,57 @@
 </div>
 
 <script>
-    // Unified text structure. 'text' is strictly read. 'explanation' is colloquial context.
+    // Added 'visual' property for scenario illustrations
     const questionsData = [
-        { text: "扭開緊或者新的樽蓋", explanation: "即係扭開好實、或者新買返嚟未開過嘅樽蓋" },
-        { text: "做消耗大量體力的家務，例如抹窗或者洗擦地板", explanation: "即係做一啲要用好多氣力嘅家務，例如抹窗或者拖地" },
-        { text: "提重物或者手提包", explanation: "即係拎重嘢，或者抽住個手袋" },
-        { text: "洗背部", explanation: "即係沖涼嗰陣時洗背脊" },
-        { text: "用刀切食物", explanation: "即係煮飯食飯嗰陣，用刀切嘢食" },
-        { text: "進行一些需要上肢用力或受震盪的康樂活動", explanation: "即係做一啲手部要用力、或者會受震盪嘅運動，例如打波、游水" },
-        { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？" },
-        { text: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", explanation: "過去一個星期，你返工或者做其他日常活動嗰陣，有冇因為手部嘅問題而覺得做唔到？" },
-        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛" },
-        { text: "上肢有麻痺或刺痛的感覺", explanation: "即係隻手有痺嘅感覺，或者好似有針拮嘅痛楚" },
-        { text: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著？" }
+        { text: "扭開緊或者新的樽蓋", explanation: "即係扭開好實、或者新買返嚟未開過嘅樽蓋", visual: "🫙💪" },
+        { text: "做消耗大量體力的家務，例如抹窗或者洗擦地板", explanation: "即係做一啲要用好多氣力嘅家務，例如抹窗或者拖地", visual: "🧹🪣" },
+        { text: "提重物或者手提包", explanation: "即係拎重嘢，或者抽住個手袋", visual: "🛍️🏋️" },
+        { text: "洗背部", explanation: "即係沖涼嗰陣時洗背脊", visual: "🚿🧽" },
+        { text: "用刀切食物", explanation: "即係煮飯食飯嗰陣，用刀切嘢食", visual: "🔪🥩" },
+        { text: "進行一些需要上肢用力或受震盪的康樂活動", explanation: "即係做一啲手部要用力、或者會受震盪嘅運動，例如打波、游水", visual: "🏸🎾" },
+        { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？去飲茶呀咁。", visual: "🫖🥟" },
+        { text: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", explanation: "過去一個星期，你返工或者做其他日常活動嗰陣，有冇因為手部嘅問題而覺得做唔到？", visual: "💼🪥" },
+        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛", visual: "💥💪" },
+        { text: "上肢有麻痺或刺痛的感覺", explanation: "即係隻手有痺嘅感覺，或者好似有針拮嘅痛楚", visual: "⚡💪" },
+        { text: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著？", visual: "🛌😫" }
     ];
 
     let currentStep = 0;
     let scores = [];
     let repeatTimeout; 
-    let sequenceId = 0; // Used to abort previous speech sequences if the user clicks quickly
+    let sequenceId = 0; 
 
-    // Fixed steady rate
     function getAdjustedRate() {
         return 0.75; 
     }
 
-    // Exact text mapping for buttons and speech
-    function getLabels() {
+    // Returns text and the corresponding visual face icon for the options
+    function getOptionsData() {
         if (currentStep >= 8) {
-            return ["沒有", "輕微", "中度", "嚴重", "極度"];
+            return [
+                { text: "沒有", icon: "😄" },
+                { text: "輕微", icon: "🙂" },
+                { text: "中度", icon: "😐" },
+                { text: "嚴重", icon: "😫" },
+                { text: "極度", icon: "😭" }
+            ];
         }
         if (currentStep === 6) {
-            return ["完全沒有", "少許", "中度", "頗大程度", "極大程度"];
+            return [
+                { text: "完全沒有", icon: "😄" },
+                { text: "少許", icon: "🙂" },
+                { text: "中度", icon: "😐" },
+                { text: "頗大程度", icon: "😫" },
+                { text: "極大程度", icon: "😭" }
+            ];
         }
-        return ["沒有困難", "少許困難", "中度困難", "非常困難", "不能做到"];
+        return [
+            { text: "沒有困難", icon: "😄" },
+            { text: "少許困難", icon: "🙂" },
+            { text: "中度困難", icon: "😐" },
+            { text: "非常困難", icon: "😫" },
+            { text: "不能做到", icon: "❌" }
+        ];
     }
 
     function startAssessment() {
@@ -221,25 +275,26 @@
 
     function loadQuestion() {
         const q = questionsData[currentStep];
-        document.getElementById('question-number').innerText = `第 ${currentStep + 1} 題`;
+        document.getElementById('question-number').innerText = `第 ${currentStep + 1} / 11 題`;
         document.getElementById('question-text').innerText = q.text;
+        document.getElementById('question-visual').innerText = q.visual; // Update Question Visual
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
         const backBtn = document.getElementById('back-btn');
         if (currentStep > 0) backBtn.classList.remove('hidden');
         else backBtn.classList.add('hidden');
 
-        const labels = getLabels();
+        const options = getOptionsData();
         for(let i=1; i<=5; i++) {
-            document.getElementById(`opt${i}`).innerText = `${i}. ${labels[i-1]}`;
+            // Inject emoji and text
+            document.getElementById(`opt${i}`).innerHTML = `<span class="emoji">${options[i-1].icon}</span> <span>${i}. ${options[i-1].text}</span>`;
         }
         
         speakCurrent();
     }
 
-    // Halts any ongoing speech and clears styles
     function stopSpeaking() {
-        sequenceId++; // Invalidates the current sequence promise chain
+        sequenceId++; 
         window.speechSynthesis.cancel();
         clearTimeout(repeatTimeout);
         resetButtonStyles();
@@ -252,10 +307,9 @@
         }
     }
 
-    // Core TTS Promise wrapper to allow sequential asynchronous playback
     function speakPromise(text, seq) {
         return new Promise(resolve => {
-            if (seq !== sequenceId) return resolve(); // Abort if sequence changed
+            if (seq !== sequenceId) return resolve(); 
             
             window.currentUtterance = new SpeechSynthesisUtterance(text);
             window.currentUtterance.lang = 'zh-HK';
@@ -268,30 +322,26 @@
             }
             
             window.currentUtterance.onend = resolve;
-            window.currentUtterance.onerror = resolve; // Proceed on error
+            window.currentUtterance.onerror = resolve; 
             
             window.speechSynthesis.speak(window.currentUtterance);
         });
     }
 
-    // Sequence to speak question, then pop out options one by one
     async function speakCurrent(isReplay = false) {
         stopSpeaking();
         const currentSeq = sequenceId;
         const q = questionsData[currentStep];
-        const labels = getLabels();
+        const options = getOptionsData();
         
         let intro = isReplay ? "重複題目。" : `第 ${currentStep + 1} 題。`;
         
-        // 1. Speak the question text
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
-        if (currentSeq !== sequenceId) return; // Exit if user interrupted
+        if (currentSeq !== sequenceId) return; 
 
-        // 2. Loop through options and highlight them as they are read
         for(let i=1; i<=5; i++) {
             if (currentSeq !== sequenceId) return;
 
-            // Apply visual cues: dim all, highlight current
             for(let j=1; j<=5; j++) {
                 let btn = document.getElementById(`opt${j}`);
                 if(j === i) {
@@ -303,22 +353,19 @@
                 }
             }
 
-            // Speak the option exactly as written
-            await speakPromise(`第 ${i}，${labels[i-1]}`, currentSeq);
+            // Note: TTS reads the text string, it ignores the emoji symbol automatically
+            await speakPromise(`第 ${i}，${options[i-1].text}`, currentSeq);
         }
 
         if (currentSeq !== sequenceId) return;
         
-        // 3. Cleanup: remove highlights after sequence finishes
         resetButtonStyles();
 
-        // 4. Set auto-repeat timer
         repeatTimeout = setTimeout(() => {
             speakCurrent(true);
         }, 15000); 
     }
 
-    // Play colloquial explanation, then replay the options
     async function speakExplanation() {
         stopSpeaking();
         const currentSeq = sequenceId;
@@ -327,19 +374,18 @@
         await speakPromise(`口語解釋：${q.explanation}。`, currentSeq);
         
         if (currentSeq === sequenceId) {
-            speakCurrent(false); // Automatically replay the question & options afterward
+            speakCurrent(false); 
         }
     }
 
     function handleAnswer(points) {
-        stopSpeaking(); // Immediately stop speech and highlights
+        stopSpeaking(); 
         
         const buttons = document.querySelectorAll('.opt-btn');
-        buttons.forEach(b => b.style.pointerEvents = 'none'); // Prevent double click
+        buttons.forEach(b => b.style.pointerEvents = 'none'); 
 
-        // Read confirmation of selection
-        const selectedText = getLabels()[points - 1];
-        speakPromise(`你揀咗：${selectedText}。`, sequenceId).then(() => {
+        const selectedOption = getOptionsData()[points - 1];
+        speakPromise(`你揀咗：${selectedOption.text}。`, sequenceId).then(() => {
             scores.push(points);
             currentStep++;
             buttons.forEach(b => b.style.pointerEvents = 'auto');
@@ -368,7 +414,6 @@
         stopSpeaking();
 
         const sum = scores.reduce((a, b) => a + b, 0);
-        // Score automation: explicitly rounded to match standard conversion charts
         const finalScore = Math.round(((sum / 11) - 1) * 25); 
         
         document.getElementById('question-screen').classList.add('hidden');
