@@ -147,14 +147,15 @@
 
         /* Question Visual Area */
         #question-visual {
-            font-size: 4.5rem;
+            font-size: 3.5rem; /* Slightly reduced so all fit nicely on mobile */
             background: #f8fbff;
             border: 3px dashed #bdc3c7;
             border-radius: 20px;
-            padding: 10px;
+            padding: 10px 15px;
             margin: 10px 0;
             display: inline-block;
             min-width: 150px;
+            letter-spacing: 5px;
         }
 
         .hidden { display: none !important; }
@@ -213,7 +214,7 @@
 </div>
 
 <script>
-    // Added 'visual' property for scenario illustrations
+    // Added 'visual' property for scenario illustrations. Pain question updated to use pain face + arm segments + explosion.
     const questionsData = [
         { text: "扭開緊或者新的樽蓋", explanation: "即係扭開好實、或者新買返嚟未開過嘅樽蓋", visual: "🫙💪" },
         { text: "做消耗大量體力的家務，例如抹窗或者洗擦地板", explanation: "即係做一啲要用好多氣力嘅家務，例如抹窗或者拖地", visual: "🧹🪣" },
@@ -221,9 +222,9 @@
         { text: "洗背部", explanation: "即係沖涼嗰陣時洗背脊", visual: "🚿🧽" },
         { text: "用刀切食物", explanation: "即係煮飯食飯嗰陣，用刀切嘢食", visual: "🔪🥩" },
         { text: "進行一些需要上肢用力或受震盪的康樂活動", explanation: "即係做一啲手部要用力、或者會受震盪嘅運動，例如打波、游水", visual: "🏸🎾" },
-        { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？去飲茶呀咁。", visual: "🫖🥟" },
+        { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？", visual: "👨‍👩‍👧‍👦🧑‍🤝‍🧑" },
         { text: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", explanation: "過去一個星期，你返工或者做其他日常活動嗰陣，有冇因為手部嘅問題而覺得做唔到？", visual: "💼🪥" },
-        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛", visual: "💥💪" },
+        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛", visual: "😫 💪 🤜 🖐️ 💥" },
         { text: "上肢有麻痺或刺痛的感覺", explanation: "即係隻手有痺嘅感覺，或者好似有針拮嘅痛楚", visual: "⚡💪" },
         { text: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著？", visual: "🛌😫" }
     ];
@@ -237,7 +238,6 @@
         return 0.75; 
     }
 
-    // Returns text and the corresponding visual face icon for the options
     function getOptionsData() {
         if (currentStep >= 8) {
             return [
@@ -277,7 +277,7 @@
         const q = questionsData[currentStep];
         document.getElementById('question-number').innerText = `第 ${currentStep + 1} / 11 題`;
         document.getElementById('question-text').innerText = q.text;
-        document.getElementById('question-visual').innerText = q.visual; // Update Question Visual
+        document.getElementById('question-visual').innerText = q.visual; 
         document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 11) * 100}%`;
         
         const backBtn = document.getElementById('back-btn');
@@ -286,7 +286,6 @@
 
         const options = getOptionsData();
         for(let i=1; i<=5; i++) {
-            // Inject emoji and text
             document.getElementById(`opt${i}`).innerHTML = `<span class="emoji">${options[i-1].icon}</span> <span>${i}. ${options[i-1].text}</span>`;
         }
         
@@ -353,7 +352,6 @@
                 }
             }
 
-            // Note: TTS reads the text string, it ignores the emoji symbol automatically
             await speakPromise(`第 ${i}，${options[i-1].text}`, currentSeq);
         }
 
