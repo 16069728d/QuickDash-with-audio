@@ -60,7 +60,7 @@
         }
 
         .opt-btn span.emoji {
-            font-size: 2rem; /* Make the facial expression big */
+            font-size: 2rem;
             background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             width: 45px;
@@ -147,7 +147,7 @@
 
         /* Question Visual Area */
         #question-visual {
-            font-size: 3.5rem; /* Slightly reduced so all fit nicely on mobile */
+            font-size: 3.5rem;
             background: #f8fbff;
             border: 3px dashed #bdc3c7;
             border-radius: 20px;
@@ -156,6 +156,27 @@
             display: inline-block;
             min-width: 150px;
             letter-spacing: 5px;
+        }
+
+        /* Instructions Box Style */
+        .instructions-box {
+            text-align: left;
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            color: var(--dark);
+            font-size: 1rem;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .instructions-box ul {
+            padding-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        .instructions-box li {
+            margin-bottom: 8px;
         }
 
         .hidden { display: none !important; }
@@ -170,9 +191,21 @@
     
     <div id="start-screen">
         <h1 style="color: var(--dark); margin-bottom: 15px;">上肢功能評估 (QuickDASH)</h1>
-        <h2 style="color: var(--grey); font-size: 1.3rem; margin-top: -10px; margin-bottom: 35px; font-weight: bold;">
+        <h2 style="color: var(--grey); font-size: 1.3rem; margin-top: -10px; margin-bottom: 15px; font-weight: bold;">
             新界東醫院聯網 物理治療部
         </h2>
+
+        <!-- Instructions added here -->
+        <div class="instructions-box">
+            <strong>說明：</strong>
+            <ul>
+                <li>這份問卷主要詢問您的症狀，以及您完成特定活動的能力。</li>
+                <li>請根據您過去一星期的狀況回答每項問題，並圈選適當的數字。</li>
+                <li>如果過去一星期您沒有機會從事某項活動，請盡可能估測最正確的答案。</li>
+                <li>請依照您的能力回答，至於您是用哪一隻手或手臂、或是以何種方式完成動作皆可。</li>
+            </ul>
+        </div>
+
         <div style="font-size: 5rem; margin-bottom: 20px;">📋💪</div>
         <p>請撳下面藍色掣開始</p>
         <button class="btn-start" onclick="startAssessment()">開始做問卷</button>
@@ -214,7 +247,6 @@
 </div>
 
 <script>
-    // Added 'visual' property for scenario illustrations. Pain question updated to use pain face + arm segments + explosion.
     const questionsData = [
         { text: "扭開緊或者新的樽蓋", explanation: "即係扭開好實、或者新買返嚟未開過嘅樽蓋", visual: "🫙💪" },
         { text: "做消耗大量體力的家務，例如抹窗或者洗擦地板", explanation: "即係做一啲要用好多氣力嘅家務，例如抹窗或者拖地", visual: "🧹🪣" },
@@ -369,6 +401,7 @@
         const currentSeq = sequenceId;
         const q = questionsData[currentStep];
         
+        // This line directly speaks the explanation without the "口語解釋" preamble
         await speakPromise(`${q.explanation}。`, currentSeq);
         
         if (currentSeq === sequenceId) {
