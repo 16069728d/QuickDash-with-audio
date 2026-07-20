@@ -224,9 +224,9 @@
         { text: "進行一些需要上肢用力或受震盪的康樂活動", explanation: "即係做一啲手部要用力、或者會受震盪嘅運動，例如打波、游水", visual: "🏸🎾" },
         { text: "在過去一星期內，你的上肢問題在多大程度上干擾了你正常的社交活動？", explanation: "過去一個星期，你手部嘅問題有幾大程度影響到你平時見家人、朋友、或者其他人嘅社交活動？", visual: "👨‍👩‍👧‍👦🧑‍🤝‍🧑" },
         { text: "在過去一星期內，你的工作或其他日常活動是否因上肢問題而受到限制？", explanation: "過去一個星期，你返工或者做其他日常活動嗰陣，有冇因為手部嘅問題而覺得做唔到？", visual: "💼🪥" },
-        { text: "上肢痛楚（包括肩膀、手臂或手部）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛", visual: "😫 💪 🤜 🖐️ 💥" },
+        { text: "上肢痛楚（包手臂或手部括肩膀、）", explanation: "即係成隻手痛，包括膊頭、手臂或者手掌痛", visual: "😫 💪 🤜 🖐️ 💥" },
         { text: "上肢有麻痺或刺痛的感覺", explanation: "即係隻手有痺嘅感覺，或者好似有針拮嘅痛楚", visual: "⚡💪" },
-        { text: "在過去一星期內，你是否因為上肢痛楚而感到入睡困難？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著？", visual: "🛌😫" }
+        { text: "在過去一星期內，你是否因為上肢痛楚而引致睡眠困難，其程度有多大？", explanation: "過去一個星期，你有冇因為手痛，搞到好難瞓得著，有幾影響你？", visual: "🛌😫" }
     ];
 
     let currentStep = 0;
@@ -369,7 +369,7 @@
         const currentSeq = sequenceId;
         const q = questionsData[currentStep];
         
-        await speakPromise(`口語解釋：${q.explanation}。`, currentSeq);
+        await speakPromise(`${q.explanation}。`, currentSeq);
         
         if (currentSeq === sequenceId) {
             speakCurrent(false); 
