@@ -365,7 +365,6 @@
         const q = questionsData[currentStep];
         const options = getOptionsData();
         
-        // Modified here: removed "重複題目。"
         let intro = isReplay ? "" : `第 ${currentStep + 1} 題。`;
         
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
