@@ -365,7 +365,8 @@
         const q = questionsData[currentStep];
         const options = getOptionsData();
         
-        let intro = isReplay ? "重複題目。" : `第 ${currentStep + 1} 題。`;
+        // Modified here: removed "重複題目。"
+        let intro = isReplay ? "" : `第 ${currentStep + 1} 題。`;
         
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
         if (currentSeq !== sequenceId) return; 
@@ -401,7 +402,6 @@
         const currentSeq = sequenceId;
         const q = questionsData[currentStep];
         
-        // This line directly speaks the explanation without the "口語解釋" preamble
         await speakPromise(`${q.explanation}。`, currentSeq);
         
         if (currentSeq === sequenceId) {
