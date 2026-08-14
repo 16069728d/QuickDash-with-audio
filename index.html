@@ -195,7 +195,6 @@
             新界東醫院聯網 物理治療部
         </h2>
 
-        <!-- Instructions added here -->
         <div class="instructions-box">
             <strong>說明：</strong>
             <ul>
@@ -214,7 +213,6 @@
     <div id="question-screen" class="hidden">
         <h2 id="question-number" style="color: var(--blue); margin-bottom: 5px;">第 1 題</h2>
         
-        <!-- Visual Cue Area -->
         <div id="question-visual">🫙</div>
         
         <p id="question-text"></p>
@@ -365,6 +363,7 @@
         const q = questionsData[currentStep];
         const options = getOptionsData();
         
+        // 此行確保如果按下重複按鈕(isReplay = true)，intro為空字串，直接讀出題目
         let intro = isReplay ? "" : `第 ${currentStep + 1} 題。`;
         
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
