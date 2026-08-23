@@ -322,6 +322,7 @@
         speakCurrent();
     }
 
+    // stopSpeaking() 會清除倒數計時，確保不會提早重播
     function stopSpeaking() {
         sequenceId++; 
         window.speechSynthesis.cancel();
@@ -358,12 +359,11 @@
     }
 
     async function speakCurrent(isReplay = false) {
-        stopSpeaking();
+        stopSpeaking(); // 這裡會立即清除舊的 40 秒計時器
         const currentSeq = sequenceId;
         const q = questionsData[currentStep];
         const options = getOptionsData();
         
-        // 此行確保如果按下重複按鈕(isReplay = true)，intro為空字串，直接讀出題目
         let intro = isReplay ? "" : `第 ${currentStep + 1} 題。`;
         
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
@@ -390,7 +390,7 @@
         
         resetButtonStyles();
 
-        // 已更改為 40 秒 (40000 毫秒)
+        // 確保無論是第一次讀出，還是手動按下「重複」，讀完後都會等待至少 40 秒 (40000 毫秒)
         repeatTimeout = setTimeout(() => {
             speakCurrent(true);
         }, 40000); 
