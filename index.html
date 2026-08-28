@@ -269,24 +269,43 @@
     }
 
     function getOptionsData() {
-        if (currentStep >= 8) {
+        if (currentStep === 10) { // 第 11 題 (Index 10)
             return [
-                { text: "沒有", icon: "😄" },
+                { text: "沒影響", icon: "😄" },
+                { text: "輕微影響", icon: "🙂" },
+                { text: "中度影響", icon: "😐" },
+                { text: "很大影響", icon: "😫" },
+                { text: "極大影響至不能入睡", icon: "😭" }
+            ];
+        }
+        if (currentStep === 8 || currentStep === 9) { // 第 9, 10 題 (Index 8, 9)
+            return [
+                { text: "無", icon: "😄" },
                 { text: "輕微", icon: "🙂" },
                 { text: "中度", icon: "😐" },
                 { text: "嚴重", icon: "😫" },
-                { text: "極度", icon: "😭" }
+                { text: "極為嚴重", icon: "😭" }
             ];
         }
-        if (currentStep === 6) {
+        if (currentStep === 7) { // 第 8 題 (Index 7)
             return [
-                { text: "完全沒有", icon: "😄" },
-                { text: "少許", icon: "🙂" },
-                { text: "中度", icon: "😐" },
-                { text: "頗大程度", icon: "😫" },
-                { text: "極大程度", icon: "😭" }
+                { text: "完全沒限制", icon: "😄" },
+                { text: "輕微限制", icon: "🙂" },
+                { text: "中度限制", icon: "😐" },
+                { text: "頗大限制", icon: "😫" },
+                { text: "做不到", icon: "❌" }
             ];
         }
+        if (currentStep === 6) { // 第 7 題 (Index 6)
+            return [
+                { text: "完全沒影響", icon: "😄" },
+                { text: "輕微影響", icon: "🙂" },
+                { text: "中度影響", icon: "😐" },
+                { text: "頗有影響", icon: "😫" },
+                { text: "嚴重影響", icon: "😭" }
+            ];
+        }
+        // 預設選項: 第 1 - 6 題 (Index 0-5)
         return [
             { text: "沒困難", icon: "😄" },
             { text: "輕微困難", icon: "🙂" },
