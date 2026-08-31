@@ -263,6 +263,9 @@
     let scores = [];
     let repeatTimeout; 
     let sequenceId = 0; 
+    
+    // 用於修正 TTS 發音的中文數字陣列
+    const zhNumbers = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一"];
 
     function getAdjustedRate() {
         return 0.75; 
@@ -382,7 +385,9 @@
         const q = questionsData[currentStep];
         const options = getOptionsData();
         
-        let intro = isReplay ? "" : `第 ${currentStep + 1} 題。`;
+        // 使用中文字陣列來確保語音會讀作「第二題」而非「第兩題」
+        const currentZhNum = zhNumbers[currentStep + 1];
+        let intro = isReplay ? "" : `第${currentZhNum}題。`;
         
         await speakPromise(`${intro}${q.text}。請選擇：`, currentSeq);
         if (currentSeq !== sequenceId) return; 
@@ -401,7 +406,8 @@
                 }
             }
 
-            await speakPromise(`第 ${i}，${options[i-1].text}`, currentSeq);
+            // 同樣確保選項中的數字也讀作中文數字，避免讀作「第兩」
+            await speakPromise(`第${zhNumbers[i]}，${options[i-1].text}`, currentSeq);
         }
 
         if (currentSeq !== sequenceId) return;
